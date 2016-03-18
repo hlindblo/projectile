@@ -1760,10 +1760,7 @@ PROJECT-ROOT is the targeted directory.  If nil, use
          (impl-file-ext (file-name-extension impl-file-path))
          (test-prefix (funcall projectile-test-prefix-function project-type))
          (test-suffix (funcall projectile-test-suffix-function project-type)))
-    (cond
-     (test-prefix (concat test-prefix impl-file-name "." impl-file-ext))
-     (test-suffix (concat impl-file-name test-suffix "." impl-file-ext))
-     (t (error "Project type not supported!")))))
+    (concat test-prefix impl-file-name test-suffix "." impl-file-ext)))
 
 (defun projectile-create-test-file-for (impl-file-path)
   (let* ((test-file (projectile--test-name-for-impl-name impl-file-path))
@@ -1813,12 +1810,23 @@ It assumes the test/ folder is at the same level as src/."
   (find-file
    (projectile-find-implementation-or-test (buffer-file-name))))
 
+(defcustom projectile-default-test-prefix ""
+  "The default test file prefix."
+  :group 'projectile
+  :type 'string)
+
 (defun projectile-test-prefix (project-type)
   "Find default test files prefix based on PROJECT-TYPE."
   (cond
    ((member project-type '(django python-pip python-pkg python-tox)) "test_")
    ((member project-type '(emacs-cask)) "test-")
-   ((member project-type '(lein-midje)) "t_")))
+   ((member project-type '(lein-midje)) "t_")
+   (t (symbol-value 'projectile-default-test-prefix))))
+
+(defcustom projectile-default-test-suffix "_test"
+  "The default test file suffix."
+  :group 'projectile
+  :type 'string)
 
 (defun projectile-test-suffix (project-type)
   "Find default test files suffix based on PROJECT-TYPE."
@@ -1829,7 +1837,8 @@ It assumes the test/ folder is at the same level as src/."
    ((member project-type '(rails-test ruby-test lein-test boot-clj go)) "_test")
    ((member project-type '(scons)) "test")
    ((member project-type '(maven symfony)) "Test")
-   ((member project-type '(gradle gradlew grails)) "Spec")))
+   ((member project-type '(gradle gradlew grails)) "Spec")
+   (t (symbol-value 'projectile-default-test-suffix))))
 
 (defun projectile-dirname-matching-count (a b)
   "Count matching dirnames ascending file paths."
@@ -1854,7 +1863,7 @@ It assumes the test/ folder is at the same level as src/."
           (-filter (lambda (current-file)
                      (let ((name (file-name-nondirectory
                                   (file-name-sans-extension current-file))))
-                       (or (when test-prefix
+                       (or (when (not (string-equal test-prefix ""))
                              (string-equal name (concat test-prefix basename)))
                            (when test-suffix
                              (string-equal name (concat basename test-suffix))))))
@@ -1876,7 +1885,7 @@ It assumes the test/ folder is at the same level as src/."
           (-filter (lambda (current-file)
                      (let ((name (file-name-nondirectory
                                   (file-name-sans-extension current-file))))
-                       (or (when test-prefix
+                       (or (when (not (string-equal test-prefix ""))
                              (string-equal (concat test-prefix name) basename))
                            (when test-suffix
                              (string-equal (concat name test-suffix) basename)))))

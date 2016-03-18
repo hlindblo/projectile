@@ -666,6 +666,38 @@
         (should (equal (list (expand-file-name "vendor/client-submodule/" project))
                        (projectile-get-all-sub-projects project)))))))
 
+(ert-deftest projectile-test-create-test-file-for ()
+  (projectile-test-with-sandbox
+    (projectile-test-with-files
+     ("project/"
+      "project/.git/"
+      "project/GTAGS"
+      "project/Makefile"
+      "project/src/"
+      "project/src/foo.c"
+      "project/test/")
+      (let ((projectile-indexing-method 'native))
+        (noflet ((projectile-project-root
+                  () (file-truename (expand-file-name "project"))))
+          (should (equal "test/foo_test.c"
+                         (projectile-create-test-file-for
+                          "src/foo.c"))))))))
+(ert-deftest projectile-project-type ()
+  (projectile-test-with-sandbox
+    (projectile-test-with-files
+     ("project/"
+      "project/.git/"
+      "project/GTAGS"
+      "project/Makefile"
+      "project/src/"
+      "project/src/foo.c"
+      "project/test/")
+      (let ((projectile-indexing-method 'native))
+        (noflet ((projectile-project-root
+                  () (file-truename (expand-file-name "project"))))
+          (should (equal 'make
+                         (projectile-project-type))))))))
+
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; End:
