@@ -675,11 +675,23 @@
       "project/Makefile"
       "project/src/"
       "project/src/foo.c"
-      "project/test/")
-      (let ((projectile-indexing-method 'native))
+      "project/test/"
+      "project/code/"
+      "project/code/submodule/"
+      "project/code/submodule/submodule.c"
+      "project/code/submodule/submodule.h"
+      "project/test/"
+      "project/test/unit/"
+      "project/test/unit/submodule/"
+      "project/test/unit/submodule/submoduleTest.c")
+     (let ((projectile-indexing-method 'native)
+           (projectile-default-test-suffix "Test"))
         (noflet ((projectile-project-root
                   () (file-truename (expand-file-name "project"))))
-          (should (equal "test/foo_test.c"
+          (should (equal "test/unit/submodule/submoduleTest.c"
+                         (projectile-create-test-file-for
+                          "code/submodule/submodule.c")))
+          (should (equal "src/foo_test.c"
                          (projectile-create-test-file-for
                           "src/foo.c"))))))))
 (ert-deftest projectile-project-type ()
